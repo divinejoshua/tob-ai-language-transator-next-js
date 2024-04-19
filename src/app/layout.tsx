@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] });
+const fontStyle = DM_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -22,7 +22,7 @@ export default function RootLayout({
         src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"
         strategy="lazyOnload"
       />
-      <body className={inter.className}>{children}</body>
+      <body className={fontStyle.className}>{children}</body>
     </html>
   );
 }
