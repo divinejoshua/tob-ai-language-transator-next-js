@@ -10,7 +10,11 @@ const openai = new OpenAI({
     // POST request
     export async function POST (req: NextRequest, res : NextResponse) {
 
-        let textFromAudio : any = await audioToText()
+        //Get the request body
+        let request = await req.formData()
+        console.log(request)
+
+        let textFromAudio = await audioToText()
 
         //Data response
         let data = textFromAudio
