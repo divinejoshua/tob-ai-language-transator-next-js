@@ -30,14 +30,13 @@ const openai = new OpenAI({
         // Get the absolute path to the file
         const audioFilePath = path.join(__dirname, 'test.wav');
 
-        console.log(audioFilePath)
-        fs.access(audioFilePath, fs.constants.F_OK, (err) => {
-            if (err) {
-                console.error("File 'test.wav' does not exist.");
-            } else {
-                console.log("File 'test.wav' exists.");
-            }
-        });
+        // fs.access(audioFilePath, fs.constants.F_OK, (err) => {
+        //     if (err) {
+        //         console.error("File 'test.wav' does not exist.");
+        //     } else {
+        //         console.log("File 'test.wav' exists.");
+        //     }
+        // });
 
         const transcription = await openai.audio.transcriptions.create({
             file: fs.createReadStream(audioFilePath),
