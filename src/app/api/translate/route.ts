@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import fs from "fs";
+import { writeFile } from "fs/promises";
 
 const openai = new OpenAI({
     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -12,9 +13,22 @@ const openai = new OpenAI({
 
         //Get the request body
         let request = await req.formData()
-        console.log(request)
+        const file: File | null = request.get('file') as unknown as File
 
-        let textFromAudio = await audioToText()
+        // Check if file exist
+        if (!file) {
+          return NextResponse.json({ success: false }, { status : 400})
+        }
+
+        const bytes = await file.arrayBuffer()
+        const buffer = Buffer.from(bytes)
+
+        // With the file data in the buffer, you can do whatever you want with it.
+        // For this, we'll just write it to the filesystem in a new location
+        const filePath = `/tmp/${file.name}`
+        await writeFile(filePath, buffer)
+
+        let textFromAudio = await audioToText(filePath)
 
         //Data response
         let data = textFromAudio
@@ -27,27 +41,14 @@ const openai = new OpenAI({
 
 
     // Convert from audio to text
-    async function audioToText() {
+    async function audioToText(filePath : string) {
 
-        const path = require('path');
-
-        // Get the absolute path to the file
-        const audioFilePath = path.join(__dirname, 'test.wav');
-
-        // fs.access(audioFilePath, fs.constants.F_OK, (err) => {
-        //     if (err) {
-        //         console.error("File 'test.wav' does not exist.");
-        //     } else {
-        //         console.log("File 'test.wav' exists.");
-        //     }
-        // });
-
+        // GPT
         const transcription = await openai.audio.transcriptions.create({
-            file: fs.createReadStream(audioFilePath),
+            file: fs.createReadStream(filePath),
             model: "whisper-1",
             response_format: "text",
         });
 
-        console.log(transcription);
         return transcription
     }
