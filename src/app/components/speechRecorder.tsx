@@ -52,8 +52,8 @@ function SpeechRecorder() {
 
         let data = new FormData();
 
-        data.append('text', "this is the transcription of the audio file");
-        data.append('wavfile', blob, "recording.wav");
+        data.append('translateTo', "French");
+        data.append('audio', blob, "recording.wav");
 
         //Download the wav file
         downloadBlobAsWave(blob, "recording.wav")
@@ -61,7 +61,7 @@ function SpeechRecorder() {
         const config = {
             headers: {'content-type': 'multipart/form-data'}
         }
-        axios.post('http://localhost:8080/asr/', data, config);
+        axios.post('/api/translate', data, config);
     }
 
     function downloadBlobAsWave(blob : Blob, fileName : string) {

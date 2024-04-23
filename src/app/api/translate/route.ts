@@ -13,7 +13,8 @@ const openai = new OpenAI({
 
         //Get the request body
         let request = await req.formData()
-        const file: File | null = request.get('file') as unknown as File
+        const file: File | null = request.get('audio') as unknown as File
+        let translateTo = request.get('translateTo')
 
         // Check if file exist
         if (!file) {
@@ -28,10 +29,14 @@ const openai = new OpenAI({
         const filePath = `/tmp/${file.name}`
         await writeFile(filePath, buffer)
 
+        // Convert the audio to text
         let textFromAudio = await audioToText(filePath)
 
+        //Translate the text
+        let tranlatedText = translateText(textFromAudio, translateTo)
+
         //Data response
-        let data = textFromAudio
+        let data = tranlatedText
 
         //Response
         return NextResponse.json(data, {
@@ -51,4 +56,16 @@ const openai = new OpenAI({
         });
 
         return transcription
+    }
+
+    // Translate text
+    async function translateText(text : any, translateTo:any) {
+        let validText = text.replace(/\n/g, "");
+
+        const completion = await openai.chat.completions.create({
+            messages: [{"role": "system", "content": "You are a helpful translator AI software built with DidiAi and Created by DivineEr"},
+                    {"role": "user", "content": `convert this text to ${translateTo}, The text is \n ${validText}`}],
+            model: "gpt-4-turbo",
+        });
+        console.log(completion.choices[0]);
     }
