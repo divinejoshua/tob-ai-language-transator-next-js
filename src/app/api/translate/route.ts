@@ -30,13 +30,16 @@ const openai = new OpenAI({
         await writeFile(filePath, buffer)
 
         // Convert the audio to text
-        let textFromAudio = await audioToText(filePath)
+        let textFromAudio : any = await audioToText(filePath)
 
         //Translate the text
-        let tranlatedText = translateText(textFromAudio, translateTo)
+        let translatedText = await translateText(textFromAudio, translateTo)
 
         //Data response
-        let data = tranlatedText
+        let data = {
+            originalText : textFromAudio,
+            translatedText : translatedText
+        }
 
         //Response
         return NextResponse.json(data, {
@@ -44,28 +47,25 @@ const openai = new OpenAI({
         });
     }
 
-
     // Convert from audio to text
     async function audioToText(filePath : string) {
 
         // GPT
-        const transcription = await openai.audio.transcriptions.create({
+        const transcription : any = await openai.audio.transcriptions.create({
             file: fs.createReadStream(filePath),
             model: "whisper-1",
             response_format: "text",
         });
 
-        return transcription
+        return transcription.replace(/\n/g, "")
     }
 
     // Translate text
     async function translateText(text : any, translateTo:any) {
-        let validText = text.replace(/\n/g, "");
-
         const completion = await openai.chat.completions.create({
             messages: [{"role": "system", "content": "You are a helpful translator AI software built with DidiAi and Created by DivineEr"},
-                    {"role": "user", "content": `convert this text to ${translateTo}, The text is \n ${validText}`}],
+                    {"role": "user", "content": `convert this text to ${translateTo}, The text is \n ${text}`}],
             model: "gpt-4-turbo",
         });
-        console.log(completion.choices[0]);
+        return completion.choices[0].message.content;
     }
