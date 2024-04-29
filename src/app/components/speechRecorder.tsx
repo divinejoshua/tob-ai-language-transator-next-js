@@ -9,14 +9,16 @@ let audioContext: any = null;
 function SpeechRecorder() {
 
     const [originalText, setoriginalText] = useState();
-    const [translatedText, settranslatedText] = useState()
+    const [translatedText, settranslatedText] = useState<string>("")
+    const [translateToLanguage, settranslateToLanguage] =useState<string>("")
+    const [isLoadingRequest, setisLoadingRequest] = useState<boolean>(false)
+    const [isListening, setisListening] = useState<boolean>(false)
 
-    const startRecording = () => {
+    function startRecording() {
         let constraints = {
             audio: true,
             video: false
         }
-
         audioContext = new window.AudioContext();
         console.log("sample rate: " + audioContext.sampleRate);
 
@@ -36,10 +38,10 @@ function SpeechRecorder() {
 
                 recorder.record();
                 console.log("Recording started");
+                setisListening(true)
             }).catch(function (err) {
                 //enable the record button if getUserMedia() fails
         });
-
     }
 
     const stopRecording = () => {
@@ -53,14 +55,16 @@ function SpeechRecorder() {
 
     const onStop = (blob : Blob) => {
         console.log("uploading...");
+        setisListening(false)
         sendRequestToTranslate(blob)
     }
 
     // send API request to translate
     async function sendRequestToTranslate(blob : Blob){
+        setisLoadingRequest(true)
         let data = new FormData();
 
-        data.append('translateTo', "French");
+        data.append('translateTo', translateToLanguage);
         data.append('audio', blob, "recording.wav");
 
         //Download the wav file
@@ -73,6 +77,7 @@ function SpeechRecorder() {
 
         setoriginalText(response.data.originalText)
         settranslatedText(response.data.translatedText)
+        setisLoadingRequest(false)
     }
 
     //Function to Download orginal audio
@@ -99,6 +104,19 @@ function SpeechRecorder() {
     return (
         <div>
             <div className="mb-3">
+
+                {/* Target language */}
+                <div className="mb-3">
+                    <p className="mt-3">Enter traget language</p>
+                    <input
+                        className="border py-2 px-3"
+                        value={translateToLanguage}
+                        onChange={(event : any) => {
+                            settranslateToLanguage(event.target.value);
+                    }}
+                    />
+                </div>
+
                 <div className="mb-3">
                     <b className="text-gray-500">Orginal version</b>
                     <p>{originalText}</p>
@@ -108,8 +126,15 @@ function SpeechRecorder() {
                     <p>{translatedText}</p>
                 </div>
             </div>
-            <button onClick={startRecording} type="button" className="border py-2 px-3">Start</button>
+            <button onClick={() => startRecording()} type="button" className="border py-2 px-3">Start</button>
             <button onClick={stopRecording} type="button"  className="border py-2 px-3">Stop</button>
+
+            {/* Show status message */}
+            {
+                isLoadingRequest ?  <p className="text-green-500 mt-4">Translating ...</p> :
+                isListening ? <p className="text-red-500 mt-4">Listening ...</p> :
+                null
+            }
         </div>
     );
 }
